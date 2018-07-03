@@ -5,19 +5,15 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.assets.loaders.ModelLoader;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.PerspectiveCamera;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g3d.Environment;
-import com.badlogic.gdx.graphics.g3d.Model;
-import com.badlogic.gdx.graphics.g3d.ModelBatch;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
+import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
@@ -39,9 +35,13 @@ public class Main extends ApplicationAdapter {
 	private AssetManager assets;
 	private boolean loading;
 	private Array<ModelInstance> instances = new Array<ModelInstance>();
+	private Array<ModelInstance> balaInstances = new Array<ModelInstance>();
 	private OrthographicCamera cam;
 	private CameraInputController camController;
+	private Model enemigo3D;
 	private int rot;
+	private Model bala3D;
+	private ModelInstance enemigo3DIns;
 
 	@Override
 	public void create () {
@@ -85,13 +85,24 @@ public class Main extends ApplicationAdapter {
 
 
 		listaBalas = new ArrayList<Sprite>();
+
+		ModelBuilder modelBuilder = new ModelBuilder();
+		bala3D = modelBuilder.createCapsule(1f,2,3, new Material(ColorAttribute.createDiffuse(Color.YELLOW)),VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+
+		enemigo3D = modelBuilder.createBox(5f, 5f, 5f,
+				new Material(ColorAttribute.createDiffuse(Color.GREEN)),
+				VertexAttributes.Usage.Position |VertexAttributes.Usage.Normal);
+
+		enemigo3DIns = new ModelInstance(enemigo3D);
+		enemigo3DIns.transform.translate(15,15,-20);
+		enemigo3DIns.transform.rotate(1,1,1,20);
 	}
 
 	private void doneLoading(){
 		Model ship = assets.get("nave.g3db", Model.class);
 		ModelInstance shipInstance = new ModelInstance(ship);
 		shipInstance.transform.scale(0.5f,0.5f,0.5f);
-		shipInstance.transform.translate(30,30, -20);
+		shipInstance.transform.translate(10,30, -20);
 
 		shipInstance.transform.rotate(0,1,0,90);
 
@@ -112,69 +123,62 @@ public class Main extends ApplicationAdapter {
 		float delta = Gdx.graphics.getDeltaTime();
 
 		if (Gdx.input.isKeyPressed(Input.Keys.D)){
-			spriteNave.translateX(velNave.x * delta);
 
 
-			instances.get(0).transform.trn(velNave.x/6 * delta, 0,0);
+
+			instances.get(0).transform.trn(velNave.x/8 * delta, 0,0);
 
 
 		} else if (Gdx.input.isKeyPressed(Input.Keys.A)){
-			spriteNave.translateX(-velNave.x* delta);
 
-			instances.get(0).transform.trn(-velNave.x/6 * delta, 0,0);
+
+			instances.get(0).transform.trn(-velNave.x/8 * delta, 0,0);
 
 		}
 
 		if (Gdx.input.isKeyPressed(Input.Keys.S)){
-			spriteNave.translateY(-velNave.y* delta);
-			instances.get(0).transform.trn(0,-velNave.x/6 * delta,0);
+
+			instances.get(0).transform.trn(0,-velNave.y/8 * delta,0);
 		} else if (Gdx.input.isKeyPressed(Input.Keys.W)){
-			spriteNave.translateY(velNave.y* delta);
-			instances.get(0).transform.trn(0,velNave.x/6 * delta,0);
+
+			instances.get(0).transform.trn(0,velNave.y/8 * delta,0);
 		}
 
 
 
 		if (Gdx.input.isKeyPressed(Input.Keys.SPACE)){
-			Sprite spriteBala = new Sprite(texBala);
-			spriteBala.scale(2);
-			spriteBala.setPosition(spriteNave.getBoundingRectangle().getX(), spriteNave.getBoundingRectangle().getY() );
-			listaBalas.add(spriteBala);
+
+			ModelInstance balaIns = new ModelInstance(bala3D);
+			Vector3 shipPos = new Vector3();
+			instances.get(0).transform.getTranslation(shipPos);
+			balaIns.transform.translate(shipPos);
+			balaInstances.add(balaIns);
+
+
+
 		}
 
-		batch.begin();
-		if (!listaBalas.isEmpty()){
-			for (Sprite bala: listaBalas
-				 ) {
-				bala.translateX(25);
-				bala.draw(batch);
 
-				if (spriteEnemigo.getBoundingRectangle().contains(bala.getBoundingRectangle())){
-					spriteEnemigo.setAlpha(0);
-				}
+		if (balaInstances.size != 0){
+
+			for (ModelInstance balaIns : balaInstances){
+				balaIns.transform.trn(25/8,0,0);
 			}
 		}
 
-		spriteNave.draw(batch);
-		if (spriteEnemigo != null){
-			spriteEnemigo.draw(batch);
-		}
 
-		batch.end();
 
-		if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)){
-			rot += 1;
 
-			if (rot > 360){
-				rot = 0;
-			}
-			System.out.println("rotando " + rot);
-			instances.get(0).transform.rotate(0, 1, 0, rot);
-		}
 
 		modelBatch.begin(cam);
 		modelBatch.render(instances, environment);
+		modelBatch.render(balaInstances, environment);
+		//modelBatch.render(enemigo3DIns, environment);
 		modelBatch.end();
+	}
+
+	private void checkColission(){
+
 	}
 	
 	@Override
