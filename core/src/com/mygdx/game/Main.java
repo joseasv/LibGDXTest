@@ -13,10 +13,11 @@ import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
-import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.*;
+import com.badlogic.gdx.math.collision.BoundingBox;
+import com.badlogic.gdx.math.collision.Sphere;
 import com.badlogic.gdx.utils.Array;
+import com.sun.javafx.geom.transform.Identity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,12 +37,14 @@ public class Main extends ApplicationAdapter {
 	private boolean loading;
 	private Array<ModelInstance> instances = new Array<ModelInstance>();
 	private Array<ModelInstance> balaInstances = new Array<ModelInstance>();
+	private Array<Sphere> balaSphere = new Array<Sphere>();
 	private OrthographicCamera cam;
 	private CameraInputController camController;
-	private Model enemigo3D;
-	private int rot;
+
 	private Model bala3D;
 	private ModelInstance enemigo3DIns;
+	private boolean eneActivo;
+	private BoundingBox eneBB;
 
 	@Override
 	public void create () {
@@ -65,7 +68,10 @@ public class Main extends ApplicationAdapter {
 		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
 		environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
 
-		cam = new OrthographicCamera(30, 30 * (800 / 600));
+		float w = Gdx.graphics.getWidth();
+		float h = Gdx.graphics.getHeight();
+
+		cam = new OrthographicCamera(30, 30 * (h / w));
 		cam.position.set(cam.viewportWidth / 2f, cam.viewportHeight / 2f, 0);
 
 		cam.update();
@@ -89,21 +95,29 @@ public class Main extends ApplicationAdapter {
 		ModelBuilder modelBuilder = new ModelBuilder();
 		bala3D = modelBuilder.createCapsule(1f,2,3, new Material(ColorAttribute.createDiffuse(Color.YELLOW)),VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
 
-		enemigo3D = modelBuilder.createBox(5f, 5f, 5f,
-				new Material(ColorAttribute.createDiffuse(Color.GREEN)),
-				VertexAttributes.Usage.Position |VertexAttributes.Usage.Normal);
+        Model enemigo3D = modelBuilder.createBox(2f, 2f, 2f,
+                new Material(ColorAttribute.createDiffuse(Color.GREEN)),
+                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
 
 		enemigo3DIns = new ModelInstance(enemigo3D);
-		enemigo3DIns.transform.translate(15,15,-20);
+		Vector3 enemigoPos = new Vector3(15,15,-20);
+		enemigo3DIns.transform.translate(enemigoPos);
 		enemigo3DIns.transform.rotate(1,1,1,20);
+		eneActivo = true;
+		eneBB = new BoundingBox();
+		enemigo3DIns.calculateBoundingBox(eneBB);
+		eneBB.mul(new Matrix4(enemigoPos, new Quaternion().idt(), new Vector3(1,1,1)));
+		//eneBB.set(eneBB.min.add(enemigoPos), eneBB.max.add(enemigoPos));
+		System.out.println("eneBB " + enemigoPos + " " +  eneBB);
+
 	}
 
 	private void doneLoading(){
 		Model ship = assets.get("nave.g3db", Model.class);
 		ModelInstance shipInstance = new ModelInstance(ship);
-		shipInstance.transform.scale(0.5f,0.5f,0.5f);
-		shipInstance.transform.translate(10,30, -20);
-
+		//shipInstance.transform.setToScaling(0.8f,0.8f,0.8f);
+		shipInstance.transform.translate(5,10, -20);
+		shipInstance.transform.scale(0.6f,0.6f,0.6f);
 		shipInstance.transform.rotate(0,1,0,90);
 
 
@@ -151,29 +165,51 @@ public class Main extends ApplicationAdapter {
 			ModelInstance balaIns = new ModelInstance(bala3D);
 			Vector3 shipPos = new Vector3();
 			instances.get(0).transform.getTranslation(shipPos);
-			balaIns.transform.translate(shipPos);
+			balaIns.transform.setToTranslation(shipPos);
+
+			balaSphere.add(new Sphere(shipPos, 1));
+
 			balaInstances.add(balaIns);
-
-
-
 		}
 
 
 		if (balaInstances.size != 0){
 
-			for (ModelInstance balaIns : balaInstances){
-				balaIns.transform.trn(25/8,0,0);
+			for (int i=0; i < balaInstances.size; i++){
+				ModelInstance bala = balaInstances.get(i);
+				BoundingBox balaBB = new BoundingBox();
+				Vector3 balaPos = new Vector3();
+
+				bala.calculateBoundingBox(balaBB);
+				bala.transform.trn(25/8,0,0);
+				bala.transform.getTranslation(balaPos);
+				balaBB.mul(new Matrix4(balaPos, new Quaternion().idt(), new Vector3(1,1,1)));
+				//balaBB.set(balaBB.min.add(balaPos), balaBB.max.add(balaPos));
+
+				if (balaBB.intersects(eneBB)){
+
+					eneActivo = false;
+
+				}
 			}
+
+
 		}
 
 
 
+		if (eneActivo){
 
+		}
 
 		modelBatch.begin(cam);
 		modelBatch.render(instances, environment);
 		modelBatch.render(balaInstances, environment);
-		//modelBatch.render(enemigo3DIns, environment);
+		if (eneActivo){
+			modelBatch.render(enemigo3DIns, environment);
+		}
+
+
 		modelBatch.end();
 	}
 
