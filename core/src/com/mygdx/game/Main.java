@@ -19,6 +19,7 @@ import com.badlogic.gdx.math.collision.Sphere;
 import com.badlogic.gdx.utils.Array;
 import com.sun.javafx.geom.transform.Identity;
 
+import javax.jws.WebParam;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +38,7 @@ public class Main extends ApplicationAdapter {
 	private boolean loading;
 	private Array<ModelInstance> instances = new Array<ModelInstance>();
 	private Array<ModelInstance> balaInstances = new Array<ModelInstance>();
+	private Array<ModelInstance> escenarioIns = new Array<ModelInstance>();
 	private Array<Sphere> balaSphere = new Array<Sphere>();
 	private OrthographicCamera cam;
 	private CameraInputController camController;
@@ -45,6 +47,8 @@ public class Main extends ApplicationAdapter {
 	private ModelInstance enemigo3DIns;
 	private boolean eneActivo;
 	private BoundingBox eneBB;
+	private PerspectiveCamera cam2;
+	private ModelInstance sceneInstance;
 
 	@Override
 	public void create () {
@@ -64,6 +68,7 @@ public class Main extends ApplicationAdapter {
 		texBala = new Texture("bala1.png");
 
 		modelBatch = new ModelBatch();
+
 		environment = new Environment();
 		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1f));
 		environment.add(new DirectionalLight().set(0.8f, 0.8f, 0.8f, -1f, -0.8f, -0.2f));
@@ -76,17 +81,19 @@ public class Main extends ApplicationAdapter {
 
 		cam.update();
 
-		/*cam = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		cam.position.set(6f, 6f, 6f);
-		cam.lookAt(0,0,0);
-		cam.near = 1f;
-		cam.far = 300f;
-		cam.update();*/
+		cam2 = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		cam2.position.set(0f, 5f, 3f);
+		cam2.lookAt(0,0,-10);
+		cam2.near = 1f;
+		cam2.far = 300f;
+		cam2.update();
 
-
+		camController = new CameraInputController(cam2);
+		Gdx.input.setInputProcessor(camController);
 
 		assets = new AssetManager();
 		assets.load("nave.g3db", Model.class);
+		assets.load("escena.g3db", Model.class);
 		loading = true;
 
 
@@ -120,8 +127,15 @@ public class Main extends ApplicationAdapter {
 		shipInstance.transform.scale(0.6f,0.6f,0.6f);
 		shipInstance.transform.rotate(0,1,0,90);
 
+		Model scene = assets.get("escena.g3db", Model.class);
+		sceneInstance = new ModelInstance(scene);
+		sceneInstance.transform.translate(-20,0, -5);
+		sceneInstance.transform.rotate(0,1,0,90);
 
 		instances.add(shipInstance);
+		escenarioIns.add(sceneInstance);
+		//instances.add(sceneInstance);
+		
 		loading = false;
 	}
 
@@ -129,7 +143,7 @@ public class Main extends ApplicationAdapter {
 	public void render () {
 		if (loading && assets.update())
 			doneLoading();
-
+		//camController.update();
 
 		//Gdx.gl.glClearColor(0.2F, 0, 0, 1);
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -137,25 +151,17 @@ public class Main extends ApplicationAdapter {
 		float delta = Gdx.graphics.getDeltaTime();
 
 		if (Gdx.input.isKeyPressed(Input.Keys.D)){
-
-
-
 			instances.get(0).transform.trn(velNave.x/8 * delta, 0,0);
-
-
 		} else if (Gdx.input.isKeyPressed(Input.Keys.A)){
-
-
 			instances.get(0).transform.trn(-velNave.x/8 * delta, 0,0);
-
 		}
 
 		if (Gdx.input.isKeyPressed(Input.Keys.S)){
-
 			instances.get(0).transform.trn(0,-velNave.y/8 * delta,0);
 		} else if (Gdx.input.isKeyPressed(Input.Keys.W)){
-
 			instances.get(0).transform.trn(0,velNave.y/8 * delta,0);
+		} else {
+
 		}
 
 
@@ -192,14 +198,14 @@ public class Main extends ApplicationAdapter {
 
 				}
 			}
-
-
 		}
 
-
-
 		if (eneActivo){
+			enemigo3DIns.transform.rotate(Vector3.Y, 5);
+		}
 
+		if (escenarioIns.size> 0){
+			escenarioIns.get(0).transform.trn(2f * delta,0,0);
 		}
 
 		modelBatch.begin(cam);
@@ -208,9 +214,13 @@ public class Main extends ApplicationAdapter {
 		if (eneActivo){
 			modelBatch.render(enemigo3DIns, environment);
 		}
-
-
 		modelBatch.end();
+
+
+		modelBatch.begin(cam2);
+		modelBatch.render(escenarioIns, environment);
+		modelBatch.end();
+
 	}
 
 	private void checkColission(){
@@ -223,6 +233,8 @@ public class Main extends ApplicationAdapter {
 		img.dispose();
 		modelBatch.dispose();
 		instances.clear();
+		escenarioIns.clear();
+		balaInstances.clear();
 		assets.dispose();
 	}
 }

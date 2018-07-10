@@ -1,0 +1,33 @@
+sprites.png
+size: 512, 72
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+ship/0001
+  rotate: false
+  xy: 0, 0
+  size: 128, 72
+  orig: 128, 72
+  offset: 0, 0
+  index: -1
+ship/0002
+  rotate: false
+  xy: 128, 0
+  size: 128, 72
+  orig: 128, 72
+  offset: 0, 0
+  index: -1
+ship/0003
+  rotate: false
+  xy: 256, 0
+  size: 128, 72
+  orig: 128, 72
+  offset: 0, 0
+  index: -1
+ship/0004
+  rotate: false
+  xy: 384, 0
+  size: 128, 72
+  orig: 128, 72
+  offset: 0, 0
+  index: -1
