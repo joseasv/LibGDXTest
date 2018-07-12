@@ -40,7 +40,8 @@ public class Main extends ApplicationAdapter {
 	private Array<ModelInstance> balaInstances = new Array<ModelInstance>();
 	private Array<ModelInstance> escenarioIns = new Array<ModelInstance>();
 	private Array<Sphere> balaSphere = new Array<Sphere>();
-	private OrthographicCamera cam;
+	private Array<Sprite> listaBalas2 = new Array<Sprite>();
+
 	private CameraInputController camController;
 
 	private Model bala3D;
@@ -53,12 +54,13 @@ public class Main extends ApplicationAdapter {
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
-		img = new Texture("vicviper1.png");
+		img = new Texture("nave.png");
 		spriteNave = new Sprite(img);
 		spriteNave.setPosition(200,200);
-		spriteNave.scale(2);
+		//spriteNave.scale(2);
 		velNave = new Vector2(400,400);
 		acNave = new Vector2();
+
 
 		Texture texEnemigo = new Texture("enemigo1.png");
 		spriteEnemigo = new Sprite(texEnemigo);
@@ -66,6 +68,7 @@ public class Main extends ApplicationAdapter {
 		spriteEnemigo.scale(2);
 
 		texBala = new Texture("bala1.png");
+		listaBalas = new ArrayList<Sprite>();
 
 		modelBatch = new ModelBatch();
 
@@ -76,10 +79,7 @@ public class Main extends ApplicationAdapter {
 		float w = Gdx.graphics.getWidth();
 		float h = Gdx.graphics.getHeight();
 
-		cam = new OrthographicCamera(30, 30 * (h / w));
-		cam.position.set(cam.viewportWidth / 2f, cam.viewportHeight / 2f, 0);
 
-		cam.update();
 
 		cam2 = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		cam2.position.set(0f, 5f, 3f);
@@ -88,51 +88,24 @@ public class Main extends ApplicationAdapter {
 		cam2.far = 300f;
 		cam2.update();
 
-		camController = new CameraInputController(cam2);
-		Gdx.input.setInputProcessor(camController);
+
 
 		assets = new AssetManager();
-		assets.load("nave.g3db", Model.class);
 		assets.load("escena.g3db", Model.class);
 		loading = true;
 
 
-		listaBalas = new ArrayList<Sprite>();
-
-		ModelBuilder modelBuilder = new ModelBuilder();
-		bala3D = modelBuilder.createCapsule(1f,2,3, new Material(ColorAttribute.createDiffuse(Color.YELLOW)),VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-
-        Model enemigo3D = modelBuilder.createBox(2f, 2f, 2f,
-                new Material(ColorAttribute.createDiffuse(Color.GREEN)),
-                VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-
-		enemigo3DIns = new ModelInstance(enemigo3D);
-		Vector3 enemigoPos = new Vector3(15,15,-20);
-		enemigo3DIns.transform.translate(enemigoPos);
-		enemigo3DIns.transform.rotate(1,1,1,20);
-		eneActivo = true;
-		eneBB = new BoundingBox();
-		enemigo3DIns.calculateBoundingBox(eneBB);
-		eneBB.mul(new Matrix4(enemigoPos, new Quaternion().idt(), new Vector3(1,1,1)));
-		//eneBB.set(eneBB.min.add(enemigoPos), eneBB.max.add(enemigoPos));
-		System.out.println("eneBB " + enemigoPos + " " +  eneBB);
-
 	}
 
 	private void doneLoading(){
-		Model ship = assets.get("nave.g3db", Model.class);
-		ModelInstance shipInstance = new ModelInstance(ship);
-		//shipInstance.transform.setToScaling(0.8f,0.8f,0.8f);
-		shipInstance.transform.translate(5,10, -20);
-		shipInstance.transform.scale(0.6f,0.6f,0.6f);
-		shipInstance.transform.rotate(0,1,0,90);
+
 
 		Model scene = assets.get("escena.g3db", Model.class);
 		sceneInstance = new ModelInstance(scene);
-		sceneInstance.transform.translate(-20,0, -5);
+		sceneInstance.transform.translate(20,0, -5);
 		sceneInstance.transform.rotate(0,1,0,90);
 
-		instances.add(shipInstance);
+
 		escenarioIns.add(sceneInstance);
 		//instances.add(sceneInstance);
 		
@@ -151,75 +124,58 @@ public class Main extends ApplicationAdapter {
 		float delta = Gdx.graphics.getDeltaTime();
 
 		if (Gdx.input.isKeyPressed(Input.Keys.D)){
-			instances.get(0).transform.trn(velNave.x/8 * delta, 0,0);
+			spriteNave.translateX(velNave.x * delta);
+
 		} else if (Gdx.input.isKeyPressed(Input.Keys.A)){
-			instances.get(0).transform.trn(-velNave.x/8 * delta, 0,0);
+			spriteNave.translateX(-velNave.x * delta);
 		}
 
 		if (Gdx.input.isKeyPressed(Input.Keys.S)){
-			instances.get(0).transform.trn(0,-velNave.y/8 * delta,0);
+			spriteNave.translateY(-velNave.y* delta);
+
 		} else if (Gdx.input.isKeyPressed(Input.Keys.W)){
-			instances.get(0).transform.trn(0,velNave.y/8 * delta,0);
-		} else {
 
+			spriteNave.translateY(velNave.y* delta);
 		}
-
 
 
 		if (Gdx.input.isKeyPressed(Input.Keys.SPACE)){
-
-			ModelInstance balaIns = new ModelInstance(bala3D);
-			Vector3 shipPos = new Vector3();
-			instances.get(0).transform.getTranslation(shipPos);
-			balaIns.transform.setToTranslation(shipPos);
-
-			balaSphere.add(new Sphere(shipPos, 1));
-
-			balaInstances.add(balaIns);
-		}
-
-
-		if (balaInstances.size != 0){
-
-			for (int i=0; i < balaInstances.size; i++){
-				ModelInstance bala = balaInstances.get(i);
-				BoundingBox balaBB = new BoundingBox();
-				Vector3 balaPos = new Vector3();
-
-				bala.calculateBoundingBox(balaBB);
-				bala.transform.trn(25/8,0,0);
-				bala.transform.getTranslation(balaPos);
-				balaBB.mul(new Matrix4(balaPos, new Quaternion().idt(), new Vector3(1,1,1)));
-				//balaBB.set(balaBB.min.add(balaPos), balaBB.max.add(balaPos));
-
-				if (balaBB.intersects(eneBB)){
-
-					eneActivo = false;
-
-				}
-			}
-		}
-
-		if (eneActivo){
-			enemigo3DIns.transform.rotate(Vector3.Y, 5);
+			Sprite spriteBala = new Sprite(texBala);
+			spriteBala.scale(2);
+			spriteBala.setPosition(spriteNave.getBoundingRectangle().getX() + spriteNave.getWidth() / 2, spriteNave.getBoundingRectangle().getY() + spriteNave.getHeight() / 2 );
+			//listaBalas.add(spriteBala);
+			listaBalas2.add(spriteBala);
 		}
 
 		if (escenarioIns.size> 0){
-			escenarioIns.get(0).transform.trn(2f * delta,0,0);
+			escenarioIns.get(0).transform.trn(-2f * delta,0,0);
 		}
-
-		modelBatch.begin(cam);
-		modelBatch.render(instances, environment);
-		modelBatch.render(balaInstances, environment);
-		if (eneActivo){
-			modelBatch.render(enemigo3DIns, environment);
-		}
-		modelBatch.end();
-
 
 		modelBatch.begin(cam2);
 		modelBatch.render(escenarioIns, environment);
 		modelBatch.end();
+
+		batch.begin();
+		if (listaBalas2.size != 0){
+			for (Sprite bala: listaBalas2
+					) {
+				bala.translateX(25);
+				bala.draw(batch);
+
+				if (spriteEnemigo.getBoundingRectangle().contains(bala.getBoundingRectangle())){
+					spriteEnemigo.setAlpha(0);
+				}
+			}
+		}
+
+		spriteNave.draw(batch);
+		if (spriteEnemigo != null){
+			spriteEnemigo.draw(batch);
+		}
+
+		batch.end();
+
+
 
 	}
 
