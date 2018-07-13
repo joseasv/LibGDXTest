@@ -19,10 +19,9 @@ public class Main extends ApplicationAdapter {
 	private Texture img;
 	private Texture texBala;
 	private Sprite spriteNave;
-	private Vector2 velNave, acNave;
+	private float velNave, velBala;
 	private Sprite spriteEnemigo;
 
-	private float x = 0;
 	private ModelBatch modelBatch;
 	private Environment environment;
 	private AssetManager assets;
@@ -31,6 +30,7 @@ public class Main extends ApplicationAdapter {
 	private Array<Sprite> listaBalas2 = new Array<Sprite>();
 
 	private PerspectiveCamera cam2;
+	private Texture texEnemigo;
 
 	@Override
 	public void create () {
@@ -38,10 +38,10 @@ public class Main extends ApplicationAdapter {
 		img = new Texture("nave.png");
 		spriteNave = new Sprite(img);
 		spriteNave.setPosition(200,200);
-		velNave = new Vector2(400,400);
-		acNave = new Vector2();
+		velNave = 400;
+		velBala = 1500;
 
-		Texture texEnemigo = new Texture("enemigo1.png");
+		texEnemigo = new Texture("enemigo1.png");
 		spriteEnemigo = new Sprite(texEnemigo);
 		spriteEnemigo.setPosition(400, 200);
 		spriteEnemigo.scale(2);
@@ -81,6 +81,7 @@ public class Main extends ApplicationAdapter {
 
 	@Override
 	public void render () {
+		// Esperando a que el modelo 3D se cargue en memoria
 		if (loading && assets.update())
 			doneLoading();
 
@@ -90,18 +91,18 @@ public class Main extends ApplicationAdapter {
 		float delta = Gdx.graphics.getDeltaTime();
 
 		if (Gdx.input.isKeyPressed(Input.Keys.D)){
-			spriteNave.translateX(velNave.x * delta);
+			spriteNave.translateX(velNave * delta);
 
 		} else if (Gdx.input.isKeyPressed(Input.Keys.A)){
-			spriteNave.translateX(-velNave.x * delta);
+			spriteNave.translateX(-velNave * delta);
 		}
 
 		if (Gdx.input.isKeyPressed(Input.Keys.S)){
-			spriteNave.translateY(-velNave.y* delta);
+			spriteNave.translateY(-velNave* delta);
 
 		} else if (Gdx.input.isKeyPressed(Input.Keys.W)){
 
-			spriteNave.translateY(velNave.y* delta);
+			spriteNave.translateY(velNave* delta);
 		}
 
 
@@ -124,7 +125,7 @@ public class Main extends ApplicationAdapter {
 		if (listaBalas2.size != 0){
 			for (Sprite bala: listaBalas2
 					) {
-				bala.translateX(25);
+				bala.translateX(velBala * delta);
 				bala.draw(batch);
 
 				if (Intersector.overlaps(spriteEnemigo.getBoundingRectangle(), bala.getBoundingRectangle())){
@@ -146,6 +147,7 @@ public class Main extends ApplicationAdapter {
 	public void dispose () {
 		batch.dispose();
 		img.dispose();
+		texEnemigo.dispose();
 		modelBatch.dispose();
 		escenarioIns.clear();
 		assets.dispose();
