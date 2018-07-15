@@ -1,5 +1,5 @@
 sprites.png
-size: 512, 72
+size: 128, 504
 format: RGBA8888
 filter: Linear,Linear
 repeat: none
@@ -12,21 +12,42 @@ ship/0001
   index: -1
 ship/0002
   rotate: false
-  xy: 128, 0
+  xy: 0, 72
   size: 128, 72
   orig: 128, 72
   offset: 0, 0
   index: -1
 ship/0003
   rotate: false
-  xy: 256, 0
+  xy: 0, 144
   size: 128, 72
   orig: 128, 72
   offset: 0, 0
   index: -1
 ship/0004
   rotate: false
-  xy: 384, 0
+  xy: 0, 216
+  size: 128, 72
+  orig: 128, 72
+  offset: 0, 0
+  index: -1
+ship/0005
+  rotate: false
+  xy: 0, 288
+  size: 128, 72
+  orig: 128, 72
+  offset: 0, 0
+  index: -1
+ship/0006
+  rotate: false
+  xy: 0, 360
+  size: 128, 72
+  orig: 128, 72
+  offset: 0, 0
+  index: -1
+ship/0007
+  rotate: false
+  xy: 0, 432
   size: 128, 72
   orig: 128, 72
   offset: 0, 0

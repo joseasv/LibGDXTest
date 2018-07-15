@@ -16,10 +16,10 @@ import com.badlogic.gdx.utils.Array;
 
 public class Main extends ApplicationAdapter {
 	private SpriteBatch batch;
-	private Texture img;
+
 	private Texture texBala;
-	private Sprite spriteNave;
-	private float velNave, velBala;
+
+	private float velBala;
 	private Sprite spriteEnemigo;
 
 	private ModelBatch modelBatch;
@@ -31,14 +31,14 @@ public class Main extends ApplicationAdapter {
 
 	private PerspectiveCamera cam2;
 	private Texture texEnemigo;
+	private PlayerShip ship;
 
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
-		img = new Texture("nave.png");
-		spriteNave = new Sprite(img);
-		spriteNave.setPosition(200,200);
-		velNave = 400;
+
+		ship = new PlayerShip("sprites.png", 400);
+
 		velBala = 1500;
 
 		texEnemigo = new Texture("enemigo1.png");
@@ -89,27 +89,27 @@ public class Main extends ApplicationAdapter {
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 		float delta = Gdx.graphics.getDeltaTime();
+		int xDirNow = 0, yDirNow = 0;
 
 		if (Gdx.input.isKeyPressed(Input.Keys.D)){
-			spriteNave.translateX(velNave * delta);
-
+			xDirNow = 1;
 		} else if (Gdx.input.isKeyPressed(Input.Keys.A)){
-			spriteNave.translateX(-velNave * delta);
+			xDirNow = -1;
 		}
 
 		if (Gdx.input.isKeyPressed(Input.Keys.S)){
-			spriteNave.translateY(-velNave* delta);
-
+			yDirNow = -1;
 		} else if (Gdx.input.isKeyPressed(Input.Keys.W)){
-
-			spriteNave.translateY(velNave* delta);
+			yDirNow = 1;
 		}
+
+		ship.move(xDirNow, yDirNow, delta);
 
 
 		if (Gdx.input.isKeyPressed(Input.Keys.SPACE)){
 			Sprite spriteBala = new Sprite(texBala);
 			spriteBala.scale(2);
-			spriteBala.setPosition(spriteNave.getBoundingRectangle().getX() + spriteNave.getWidth() / 2, spriteNave.getBoundingRectangle().getY() + spriteNave.getHeight() / 2 );
+			spriteBala.setPosition(ship.getPosition().x, ship.getPosition().y);
 			listaBalas2.add(spriteBala);
 		}
 
@@ -134,11 +134,8 @@ public class Main extends ApplicationAdapter {
 			}
 		}
 
-		spriteNave.draw(batch);
-
-			spriteEnemigo.draw(batch);
-
-
+		ship.draw(batch);
+		spriteEnemigo.draw(batch);
 		batch.end();
 		
 	}
@@ -146,7 +143,7 @@ public class Main extends ApplicationAdapter {
 	@Override
 	public void dispose () {
 		batch.dispose();
-		img.dispose();
+		ship.dispose();
 		texEnemigo.dispose();
 		modelBatch.dispose();
 		escenarioIns.clear();
