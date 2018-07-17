@@ -1,5 +1,6 @@
 package com.mygdx.game;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.math.Vector2;
@@ -7,7 +8,7 @@ import com.badlogic.gdx.math.Vector2;
 public class PlayerShip {
     private Texture texture;
     private Vector2 position;
-    private Animation<TextureRegion> shipAnimation;
+
     private TextureRegion downFrames[];
     private int animFrame;
     private float velocity;
@@ -25,12 +26,10 @@ public class PlayerShip {
         for (int i =0; i < 7; i++){
             for (int j=0; j <1; j++){
                 downFrames[index++] = tmp[i][j];
-                System.out.println(index);
             }
 
         }
 
-        //shipAnimation = new Animation<TextureRegion>(0.025f, downFrames);
         animFrame = 3;
         this.velocity = velocity;
         position = new Vector2(200, 200);
@@ -42,11 +41,9 @@ public class PlayerShip {
         if (yDir == 0){
 
             if (animFrame > SHIP_EVEN){
-                System.out.println(animFrame);
                 animFrame--;
             }
             if (animFrame < SHIP_EVEN) {
-                System.out.println(animFrame);
                 animFrame++;
             }
 

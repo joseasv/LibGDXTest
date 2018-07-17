@@ -10,19 +10,21 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Pool;
+import com.badlogic.gdx.utils.Queue;
 
 
 public class Main extends ApplicationAdapter {
 	private SpriteBatch batch;
 
-	private Texture texBala;
 
-	private float velBala;
-	private Sprite spriteEnemigo;
+
 
 	private ModelBatch modelBatch;
+	private ShapeRenderer shapeRenderer;
 	private Environment environment;
 	private AssetManager assets;
 	private boolean loading;
@@ -30,23 +32,24 @@ public class Main extends ApplicationAdapter {
 	private Array<Sprite> listaBalas2 = new Array<Sprite>();
 
 	private PerspectiveCamera cam2;
-	private Texture texEnemigo;
 	private PlayerShip ship;
+	private Enemy enemy;
+	private InputController input;
+	private final Queue<PlayerBullet> bullets = new Queue<PlayerBullet>(10);
 
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
-
+		shapeRenderer = new ShapeRenderer();
 		ship = new PlayerShip("sprites.png", 400);
+		enemy = new Enemy("enemigo1.png");
+		input = new InputController();
 
-		velBala = 1500;
+		for (int i = 0; i < 10; i++){
+			bullets.addLast(new PlayerBullet("bala1.png"));
 
-		texEnemigo = new Texture("enemigo1.png");
-		spriteEnemigo = new Sprite(texEnemigo);
-		spriteEnemigo.setPosition(400, 200);
-		spriteEnemigo.scale(2);
-
-		texBala = new Texture("bala1.png");
+		}
+		Gdx.app.log("Main", "size bullet pool: " + bullets.size);
 
 		modelBatch = new ModelBatch();
 
@@ -89,28 +92,18 @@ public class Main extends ApplicationAdapter {
 		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 		float delta = Gdx.graphics.getDeltaTime();
-		int xDirNow = 0, yDirNow = 0;
 
-		if (Gdx.input.isKeyPressed(Input.Keys.D)){
-			xDirNow = 1;
-		} else if (Gdx.input.isKeyPressed(Input.Keys.A)){
-			xDirNow = -1;
-		}
+		input.readInput();
 
-		if (Gdx.input.isKeyPressed(Input.Keys.S)){
-			yDirNow = -1;
-		} else if (Gdx.input.isKeyPressed(Input.Keys.W)){
-			yDirNow = 1;
-		}
+		ship.move(input.getxDirNow(), input.getyDirNow(), delta);
 
-		ship.move(xDirNow, yDirNow, delta);
+		if (input.isShooting()){
+			if (!bullets.first().isActive()){
+				PlayerBullet newBullet = bullets.removeFirst();
+				newBullet.init(ship.getPosition());
+				bullets.addLast(newBullet);
+			}
 
-
-		if (Gdx.input.isKeyPressed(Input.Keys.SPACE)){
-			Sprite spriteBala = new Sprite(texBala);
-			spriteBala.scale(2);
-			spriteBala.setPosition(ship.getPosition().x, ship.getPosition().y);
-			listaBalas2.add(spriteBala);
 		}
 
 		if (escenarioIns.size> 0){
@@ -122,21 +115,29 @@ public class Main extends ApplicationAdapter {
 		modelBatch.end();
 
 		batch.begin();
-		if (listaBalas2.size != 0){
-			for (Sprite bala: listaBalas2
-					) {
-				bala.translateX(velBala * delta);
-				bala.draw(batch);
 
-				if (Intersector.overlaps(spriteEnemigo.getBoundingRectangle(), bala.getBoundingRectangle())){
-					spriteEnemigo.setAlpha(0);
+		for(int i=bullets.size - 1; i >= 0; i--){
+			PlayerBullet playerBullet = bullets.get(i);
+			if(playerBullet.isActive()){
+				playerBullet.move(delta);
+				playerBullet.draw(batch);
+				if (Intersector.overlaps(enemy.getHitBox(), playerBullet.getHitBox())){
+					enemy.setAlive(false);
+					playerBullet.setActive(false);
 				}
+			} else {
+				PlayerBullet removedBullet = bullets.removeIndex(i);
+				bullets.addFirst(removedBullet);
 			}
 		}
 
 		ship.draw(batch);
-		spriteEnemigo.draw(batch);
+		enemy.draw(batch);
 		batch.end();
+
+		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+		enemy.drawDebug(shapeRenderer);
+		shapeRenderer.end();
 		
 	}
 	
@@ -144,7 +145,7 @@ public class Main extends ApplicationAdapter {
 	public void dispose () {
 		batch.dispose();
 		ship.dispose();
-		texEnemigo.dispose();
+		enemy.dispose();
 		modelBatch.dispose();
 		escenarioIns.clear();
 		assets.dispose();
