@@ -42,11 +42,11 @@ public class Main extends ApplicationAdapter {
 		batch = new SpriteBatch();
 		shapeRenderer = new ShapeRenderer();
 		ship = new PlayerShip("sprites.png", 400);
-		enemy = new Enemy("enemigo1.png");
+		enemy = new Enemy("enemigo2.png");
 		input = new InputController();
 
 		for (int i = 0; i < 10; i++){
-			bullets.addLast(new PlayerBullet("bala1.png"));
+			bullets.addLast(new PlayerBullet("bala2.png"));
 
 		}
 		Gdx.app.log("Main", "size bullet pool: " + bullets.size);
@@ -100,7 +100,8 @@ public class Main extends ApplicationAdapter {
 		if (input.isShooting()){
 			if (!bullets.first().isActive()){
 				PlayerBullet newBullet = bullets.removeFirst();
-				newBullet.init(ship.getPosition());
+				Vector2 bulletPos = ship.getPosition().cpy();
+				newBullet.init(bulletPos.add(ship.getTexture().getWidth()/2, 0));
 				bullets.addLast(newBullet);
 			}
 
@@ -135,9 +136,9 @@ public class Main extends ApplicationAdapter {
 		enemy.draw(batch);
 		batch.end();
 
-		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-		enemy.drawDebug(shapeRenderer);
-		shapeRenderer.end();
+		//shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+		//enemy.drawDebug(shapeRenderer);
+		//shapeRenderer.end();
 		
 	}
 	

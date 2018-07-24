@@ -21,8 +21,8 @@ public class Enemy {
         width = texture.getWidth();
         height = texture.getHeight();
         position = new Vector2(400,200);
-        hitBoxRadius = 5;
-        hitBox = new Circle(position.x, position.y, hitBoxRadius);
+        hitBoxRadius = 20;
+        hitBox = new Circle(position, hitBoxRadius);
 
     }
 
@@ -39,7 +39,7 @@ public class Enemy {
     }
 
     public Circle getHitBox() {
-        hitBox.setPosition(position.x - width/2, position.y - height/2);
+        hitBox.setPosition(position.x, position.y);
         return hitBox;
     }
 
