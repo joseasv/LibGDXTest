@@ -19,23 +19,19 @@ import com.badlogic.gdx.utils.Queue;
 
 public class Main extends ApplicationAdapter {
 	private SpriteBatch batch;
-
-
-
-
 	private ModelBatch modelBatch;
+
 	private ShapeRenderer shapeRenderer;
 	private Environment environment;
 	private AssetManager assets;
 	private boolean loading;
 	private Array<ModelInstance> escenarioIns = new Array<ModelInstance>();
-	private Array<Sprite> listaBalas2 = new Array<Sprite>();
 
 	private PerspectiveCamera cam2;
 	private PlayerShip ship;
 	private Enemy enemy;
 	private InputController input;
-	private final Queue<PlayerBullet> bullets = new Queue<PlayerBullet>(10);
+	private BulletManager bulletManager;
 
 	@Override
 	public void create () {
@@ -45,11 +41,7 @@ public class Main extends ApplicationAdapter {
 		enemy = new Enemy("enemigo2.png");
 		input = new InputController();
 
-		for (int i = 0; i < 10; i++){
-			bullets.addLast(new PlayerBullet("bala2.png"));
-
-		}
-		Gdx.app.log("Main", "size bullet pool: " + bullets.size);
+		bulletManager = new BulletManager();
 
 		modelBatch = new ModelBatch();
 
@@ -98,13 +90,9 @@ public class Main extends ApplicationAdapter {
 		ship.move(input.getxDirNow(), input.getyDirNow(), delta);
 
 		if (input.isShooting()){
-			if (!bullets.first().isActive()){
-				PlayerBullet newBullet = bullets.removeFirst();
-				Vector2 bulletPos = ship.getPosition().cpy();
-				newBullet.init(bulletPos.add(ship.getTexture().getWidth()/2, 0));
-				bullets.addLast(newBullet);
-			}
-
+			Vector2 bulletPos = ship.getPosition().cpy();
+			bulletPos.add(ship.getTexture().getWidth()/2, 0);
+			bulletManager.firePlayerBullet(bulletPos);
 		}
 
 		if (escenarioIns.size> 0){
@@ -117,21 +105,7 @@ public class Main extends ApplicationAdapter {
 
 		batch.begin();
 
-		for(int i=bullets.size - 1; i >= 0; i--){
-			PlayerBullet playerBullet = bullets.get(i);
-			if(playerBullet.isActive()){
-				playerBullet.move(delta);
-				playerBullet.draw(batch);
-				if (Intersector.overlaps(enemy.getHitBox(), playerBullet.getHitBox())){
-					enemy.setAlive(false);
-					playerBullet.setActive(false);
-				}
-			} else {
-				PlayerBullet removedBullet = bullets.removeIndex(i);
-				bullets.addFirst(removedBullet);
-			}
-		}
-
+		bulletManager.updateAndDraw(delta, enemy, batch);
 		ship.draw(batch);
 		enemy.draw(batch);
 		batch.end();

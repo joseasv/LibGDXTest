@@ -29,11 +29,11 @@ public class PlayerBullet implements Pool.Poolable {
 
     public void move(float delta){
         position.add(velocity*delta, 0);
-        Gdx.app.log("PlayerBullet: ", "position " + position);
+        //Gdx.app.log("PlayerBullet: ", "position " + position);
         if (position.x > Gdx.graphics.getWidth()){
-            Gdx.app.log("PlayerBullet: ", "salio de la pantalla");
-            Gdx.app.log("PlayerBullet: ", "position.y " + position.x);
-            Gdx.app.log("PlayerBullet: ", "pantalla " + Gdx.graphics.getWidth());
+            //Gdx.app.log("PlayerBullet: ", "salio de la pantalla");
+            //Gdx.app.log("PlayerBullet: ", "position.y " + position.x);
+            //Gdx.app.log("PlayerBullet: ", "pantalla " + Gdx.graphics.getWidth());
             active = false;
         }
     }
@@ -62,5 +62,9 @@ public class PlayerBullet implements Pool.Poolable {
     public void reset() {
         position.set(0,0);
         active = false;
+    }
+
+    public Vector2 getPosition() {
+        return position;
     }
 }
