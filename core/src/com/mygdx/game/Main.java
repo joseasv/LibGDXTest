@@ -33,6 +33,12 @@ public class Main extends ApplicationAdapter {
 	private InputController input;
 	private BulletManager bulletManager;
 
+	private float physicsUpdateSpeed = 1/60f;
+	private float accumulator = 0;
+	private float backgroundLast = 0f;
+
+	private boolean isRunning;
+
 	@Override
 	public void create () {
 		batch = new SpriteBatch();
@@ -59,6 +65,7 @@ public class Main extends ApplicationAdapter {
 		assets = new AssetManager();
 		assets.load("escena.g3db", Model.class);
 		loading = true;
+		isRunning = true;
 
 	}
 
@@ -76,14 +83,46 @@ public class Main extends ApplicationAdapter {
 
 	@Override
 	public void render () {
-		// Esperando a que el modelo 3D se cargue en memoria
-		if (loading && assets.update())
-			doneLoading();
+			accumulator += Gdx.graphics.getRawDeltaTime();
+			//Gdx.app.log("Main", "rawDeltaTime " + Gdx.graphics.getRawDeltaTime());
+			// Esperando a que el modelo 3D se cargue en memoria
+			if (loading && assets.update())
+				doneLoading();
 
-		//Gdx.gl.glClearColor(0.2F, 0, 0, 1);
-		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
-		float delta = Gdx.graphics.getDeltaTime();
+			//Gdx.gl.glClearColor(0.2F, 0, 0, 1);
+			Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+			Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+
+			//Gdx.app.log("Main", "accumulator " + accumulator);
+			/*while (accumulator >= 0.25){
+				Gdx.app.log("Main", "updating");
+				update(physicsUpdateSpeed);
+				accumulator -= physicsUpdateSpeed;
+			}*/
+			update(Gdx.graphics.getDeltaTime());
+
+			modelBatch.begin(cam2);
+			modelBatch.render(escenarioIns, environment);
+			modelBatch.end();
+
+			batch.begin();
+			bulletManager.draw(batch);
+			ship.draw(batch);
+			enemy.draw(batch);
+			batch.end();
+
+			//shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+			//enemy.drawDebug(shapeRenderer);
+			//shapeRenderer.end();
+
+
+
+
+	}
+
+	private void update(float delta) {
+
+		//float delta = Gdx.graphics.getDeltaTime();
 
 		input.readInput();
 
@@ -95,27 +134,32 @@ public class Main extends ApplicationAdapter {
 			bulletManager.firePlayerBullet(bulletPos);
 		}
 
-		if (escenarioIns.size> 0){
-			escenarioIns.get(0).transform.trn(-2f * delta,0,0);
+		enemy.move(delta, bulletManager);
+
+		bulletManager.update(delta, enemy);
+
+		Vector3 pos = new Vector3();
+		if (escenarioIns.size > 0){
+
+			escenarioIns.get(0).transform.getTranslation(pos);
 		}
 
-		modelBatch.begin(cam2);
-		modelBatch.render(escenarioIns, environment);
-		modelBatch.end();
 
-		batch.begin();
+		if (escenarioIns.size> 0 && pos.x > -20){
+			//ector3 pos = new Vector3();
+			//escenarioIns.get(0).transform.getTranslation(pos);
+			//Gdx.app.log("Main:", "pos.x " + pos.x);
+			//float nextValue = Interpolation.smoother.apply(backgroundLast,-2f * delta, 1);
+			//float nextValue = Interpolation.smoother.apply(backgroundLast);
+			//Gdx.app.log("Main: ", "diferencia " + (backgroundLast - nextValue));
+			//Gdx.app.log("Main:", "nextValue " + nextValue);
 
-		bulletManager.updateAndDraw(delta, enemy, batch);
-		ship.draw(batch);
-		enemy.draw(batch);
-		batch.end();
+			escenarioIns.get(0).transform.trn(-2f * delta,0,0);
+			//backgroundLast = -10f * delta;
 
-		//shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-		//enemy.drawDebug(shapeRenderer);
-		//shapeRenderer.end();
-		
+		}
 	}
-	
+
 	@Override
 	public void dispose () {
 		batch.dispose();

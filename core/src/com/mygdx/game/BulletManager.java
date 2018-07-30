@@ -4,28 +4,30 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Queue;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 public class BulletManager {
-    private final Queue<PlayerBullet> bullets = new Queue<PlayerBullet>(10);
-    private final List<PlayerBullet> activeBullets = new ArrayList<PlayerBullet>(10);
-    private final Queue<PlayerBullet> inactiveBullets = new Queue<PlayerBullet>(10);
+
+    private final List<Bullet> activeBullets = new ArrayList<Bullet>(10);
+    private final Queue<Bullet> inactiveBullets = new Queue<Bullet>(20);
+    private final Queue<Bullet> inactiveEnemyBullets = new Queue<Bullet>(10);
+    private final List<Bullet> activeEnemyBullets = new ArrayList<Bullet>(5);
 
     public BulletManager(){
-        for (int i = 0; i < 10; i++){
+        /*for (int i = 0; i < 10; i++){
             bullets.addLast(new PlayerBullet("bala2.png"));
+        }*/
 
-            //Gdx.app.log("Main", "size bullet pool: " + bullets.size);
-
+        for (int i=0; i < 20; i++){
+            inactiveBullets.addFirst(new Bullet("bala2.png"));
+            Gdx.app.log("Main", "size bullet pool: " + inactiveBullets.size);
         }
 
         for (int i=0; i < 10; i++){
-            inactiveBullets.addFirst(new PlayerBullet("bala2.png"));
+            inactiveEnemyBullets.addFirst(new Bullet("bala2.png"));
             Gdx.app.log("Main", "size bullet pool: " + inactiveBullets.size);
         }
     }
@@ -40,15 +42,27 @@ public class BulletManager {
         }*/
 
         if (inactiveBullets.size > 0){
-            PlayerBullet newBullet = inactiveBullets.removeFirst();
-            newBullet.init(bulletPosition);
+            Bullet newBullet = inactiveBullets.removeFirst();
+            newBullet.init(bulletPosition, 1);
             activeBullets.add(newBullet);
             Gdx.app.log("BulletManager", "size inactivebullet pool: " + inactiveBullets.size);
             Gdx.app.log("BulletManager", "size activebullet pool: " + activeBullets.size());
         }
     }
 
-    public void updateAndDraw(float delta, Enemy enemy, SpriteBatch batch){
+    public void fireEnemyBullet(Vector2 bulletPosition){
+        if (inactiveEnemyBullets.size > 0){
+            Bullet newBullet = inactiveEnemyBullets.removeFirst();
+            newBullet.init(bulletPosition, -1);
+            activeEnemyBullets.add(newBullet);
+            Gdx.app.log("BulletManager", "size inactivebullet pool: " + inactiveBullets.size);
+            Gdx.app.log("BulletManager", "size activebullet pool: " + activeBullets.size());
+        }
+
+    }
+
+    public void update(float delta, Enemy enemy){
+
         /*for(int i=bullets.size - 1; i >= 0; i--){
             PlayerBullet playerBullet = bullets.get(i);
             if(playerBullet.isActive()){
@@ -66,21 +80,41 @@ public class BulletManager {
         }*/
 
         for (int i = activeBullets.size() - 1; i >= 0; i--){
-            PlayerBullet playerBullet = activeBullets.get(i);
-            playerBullet.move(delta);
-            playerBullet.draw(batch);
-            if (Intersector.overlaps(enemy.getHitBox(), playerBullet.getHitBox())){
-                activeBullets.remove(playerBullet);
+            Bullet Bullet = activeBullets.get(i);
+            Bullet.move(delta);
+            if (Intersector.overlaps(enemy.getHitBox(), Bullet.getHitBox())){
+                activeBullets.remove(Bullet);
                 enemy.setAlive(false);
-                inactiveBullets.addFirst(playerBullet);
+                inactiveBullets.addFirst(Bullet);
             } else {
-                if (playerBullet.getPosition().x > Gdx.graphics.getWidth()){
-                    activeBullets.remove(playerBullet);
-                    inactiveBullets.addFirst(playerBullet);
+                if (Bullet.getPosition().x > Gdx.graphics.getWidth()){
+                    activeBullets.remove(Bullet);
+                    inactiveBullets.addFirst(Bullet);
                 }
             }
+        }
 
+        for (int i = activeEnemyBullets.size() - 1; i >= 0; i--){
+            Bullet Bullet = activeEnemyBullets.get(i);
+            Bullet.move(delta);
 
+            if (Bullet.getPosition().x > Gdx.graphics.getWidth() || Bullet.getPosition().x < 0){
+                activeEnemyBullets.remove(Bullet);
+                inactiveEnemyBullets.addFirst(Bullet);
+            }
+
+        }
+    }
+
+    public void draw(SpriteBatch batch){
+        for (int i = 0; i < activeBullets.size() ; i++){
+            Bullet bullet = activeBullets.get(i);
+            bullet.draw(batch);
+        }
+
+        for (int i = 0; i < activeEnemyBullets.size() ; i++){
+            Bullet bullet = activeEnemyBullets.get(i);
+            bullet.draw(batch);
         }
     }
 

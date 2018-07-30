@@ -5,30 +5,38 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-import com.badlogic.gdx.utils.Pool;
 
-public class PlayerBullet implements Pool.Poolable {
+public class Bullet {
     private Texture texture;
     private Vector2 position;
+    private Vector2 direction;
     private float velocity;
     private boolean active;
     private Rectangle hitBox;
 
-    public PlayerBullet(String textPath){
+    public Bullet(String textPath){
         position = new Vector2();
+        direction = new Vector2();
         texture = new Texture(textPath);
         velocity = 1000;
         active = false;
         hitBox = new Rectangle(position.x, position.y, texture.getWidth(), texture.getHeight());
     }
 
-    public void init(Vector2 newPos){
+    public void init(Vector2 newPos, Vector2 direction){
         position.set(newPos);
+        this.direction.set(direction);
+        active = true;
+    }
+
+    public void init(Vector2 newPos, int xDirection){
+        position.set(newPos);
+        direction.set(xDirection, 0);
         active = true;
     }
 
     public void move(float delta){
-        position.add(velocity*delta, 0);
+        position.add(velocity*direction.x*delta, velocity*direction.y*delta);
         //Gdx.app.log("PlayerBullet: ", "position " + position);
         if (position.x > Gdx.graphics.getWidth()){
             //Gdx.app.log("PlayerBullet: ", "salio de la pantalla");
@@ -56,12 +64,6 @@ public class PlayerBullet implements Pool.Poolable {
 
     public void setActive(boolean active) {
         this.active = active;
-    }
-
-    @Override
-    public void reset() {
-        position.set(0,0);
-        active = false;
     }
 
     public Vector2 getPosition() {
