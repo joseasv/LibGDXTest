@@ -83,6 +83,9 @@ public class Main extends ApplicationAdapter {
 
 	@Override
 	public void render () {
+		if (loading && assets.update())
+			doneLoading();
+		else{
 			accumulator += Gdx.graphics.getRawDeltaTime();
 			//Gdx.app.log("Main", "rawDeltaTime " + Gdx.graphics.getRawDeltaTime());
 			// Esperando a que el modelo 3D se cargue en memoria
@@ -90,41 +93,35 @@ public class Main extends ApplicationAdapter {
 				doneLoading();
 
 			//Gdx.gl.glClearColor(0.2F, 0, 0, 1);
-			Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-			Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
 			//Gdx.app.log("Main", "accumulator " + accumulator);
-			/*while (accumulator >= 0.25){
-				Gdx.app.log("Main", "updating");
+
+			input.readInput();
+
+			int currentUpdateLoop = 0;
+			//Gdx.app.log("Main", "entrando al bucle " + accumulator);
+			while (accumulator >= physicsUpdateSpeed){
+				//Gdx.app.log("Main", "updating " + accumulator);
 				update(physicsUpdateSpeed);
 				accumulator -= physicsUpdateSpeed;
-			}*/
-			update(Gdx.graphics.getDeltaTime());
+				currentUpdateLoop++;
+			}
 
-			modelBatch.begin(cam2);
-			modelBatch.render(escenarioIns, environment);
-			modelBatch.end();
-
-			batch.begin();
-			bulletManager.draw(batch);
-			ship.draw(batch);
-			enemy.draw(batch);
-			batch.end();
-
-			//shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-			//enemy.drawDebug(shapeRenderer);
-			//shapeRenderer.end();
+			//Gdx.app.log("Main", "saliendo del bucle " + accumulator);
+			//update(Gdx.graphics.getRawDeltaTime());
+			draw();
+		}
 
 
 
 
 	}
 
+
+
 	private void update(float delta) {
 
 		//float delta = Gdx.graphics.getDeltaTime();
-
-		input.readInput();
 
 		ship.move(input.getxDirNow(), input.getyDirNow(), delta);
 
@@ -136,7 +133,7 @@ public class Main extends ApplicationAdapter {
 
 		enemy.move(delta, bulletManager);
 
-		bulletManager.update(delta, enemy);
+		bulletManager.update(delta, enemy, ship);
 
 		Vector3 pos = new Vector3();
 		if (escenarioIns.size > 0){
@@ -158,6 +155,26 @@ public class Main extends ApplicationAdapter {
 			//backgroundLast = -10f * delta;
 
 		}
+	}
+
+	private void draw() {
+		Gdx.gl.glViewport(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+
+		modelBatch.begin(cam2);
+		modelBatch.render(escenarioIns, environment);
+		modelBatch.end();
+
+		batch.begin();
+		bulletManager.draw(batch);
+		ship.draw(batch);
+		enemy.draw(batch);
+		batch.end();
+
+		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+		enemy.drawDebug(shapeRenderer);
+		ship.drawDebug(shapeRenderer);
+		shapeRenderer.end();
 	}
 
 	@Override

@@ -12,7 +12,7 @@ public class Bullet {
     private Vector2 direction;
     private float velocity;
     private boolean active;
-    private Rectangle hitBox;
+    private Rectangle hitBox; // todo CAMBIAR A CIRCLE
 
     public Bullet(String textPath){
         position = new Vector2();

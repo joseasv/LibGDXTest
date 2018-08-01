@@ -34,7 +34,7 @@ public class Enemy {
     public void move(float delta, BulletManager bulletManager){
         timer += delta;
 
-        if (timer > 1.5){
+        if (timer > 0.5){
             Vector2 bulletPos = position.cpy();
             bulletPos.add(-width /2, 0);
             bulletManager.fireEnemyBullet(bulletPos);
@@ -47,6 +47,8 @@ public class Enemy {
         if (position.y + height/2 > Gdx.graphics.getHeight() || position.y - height/2 < 0){
 
             dir = -dir;
+            //Gdx.app.log("Cambiando direccion ", "posYEnemigo " + position.y);
+            //Gdx.app.log("Nueva dir", "dir " + dir);
         }
     }
 

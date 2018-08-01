@@ -17,9 +17,6 @@ public class BulletManager {
     private final List<Bullet> activeEnemyBullets = new ArrayList<Bullet>(5);
 
     public BulletManager(){
-        /*for (int i = 0; i < 10; i++){
-            bullets.addLast(new PlayerBullet("bala2.png"));
-        }*/
 
         for (int i=0; i < 20; i++){
             inactiveBullets.addFirst(new Bullet("bala2.png"));
@@ -34,19 +31,12 @@ public class BulletManager {
 
     public void firePlayerBullet(Vector2 bulletPosition){
 
-
-        /*if (!bullets.first().isActive()){
-            PlayerBullet newBullet = bullets.removeFirst();
-            newBullet.init(bulletPosition);
-            bullets.addLast(newBullet);
-        }*/
-
         if (inactiveBullets.size > 0){
             Bullet newBullet = inactiveBullets.removeFirst();
             newBullet.init(bulletPosition, 1);
             activeBullets.add(newBullet);
-            Gdx.app.log("BulletManager", "size inactivebullet pool: " + inactiveBullets.size);
-            Gdx.app.log("BulletManager", "size activebullet pool: " + activeBullets.size());
+            //Gdx.app.log("BulletManager", "size inactivebullet pool: " + inactiveBullets.size);
+            //Gdx.app.log("BulletManager", "size activebullet pool: " + activeBullets.size());
         }
     }
 
@@ -55,55 +45,50 @@ public class BulletManager {
             Bullet newBullet = inactiveEnemyBullets.removeFirst();
             newBullet.init(bulletPosition, -1);
             activeEnemyBullets.add(newBullet);
-            Gdx.app.log("BulletManager", "size inactivebullet pool: " + inactiveBullets.size);
-            Gdx.app.log("BulletManager", "size activebullet pool: " + activeBullets.size());
+            //Gdx.app.log("BulletManager", "size inactivebullet pool: " + inactiveBullets.size);
+            //Gdx.app.log("BulletManager", "size activebullet pool: " + activeBullets.size());
         }
 
     }
 
-    public void update(float delta, Enemy enemy){
-
-        /*for(int i=bullets.size - 1; i >= 0; i--){
-            PlayerBullet playerBullet = bullets.get(i);
-            if(playerBullet.isActive()){
-                playerBullet.move(delta);
-                playerBullet.draw(batch);
-                if (Intersector.overlaps(enemy.getHitBox(), playerBullet.getHitBox())){
-                    enemy.setAlive(false);
-                    playerBullet.setActive(false);
-                    bullets.addFirst(playerBullet);
-                }
-            } else {
-                PlayerBullet removedBullet = bullets.removeIndex(i);
-                bullets.addFirst(removedBullet);
-            }
-        }*/
+    public void update(float delta, Enemy enemy, PlayerShip ship){
 
         for (int i = activeBullets.size() - 1; i >= 0; i--){
-            Bullet Bullet = activeBullets.get(i);
-            Bullet.move(delta);
-            if (Intersector.overlaps(enemy.getHitBox(), Bullet.getHitBox())){
-                activeBullets.remove(Bullet);
+            Bullet bullet = activeBullets.get(i);
+            bullet.move(delta);
+            if (Intersector.overlaps(enemy.getHitBox(), bullet.getHitBox())){
                 enemy.setAlive(false);
-                inactiveBullets.addFirst(Bullet);
+                recyclePlayerBullet(bullet, activeBullets, inactiveBullets);
             } else {
-                if (Bullet.getPosition().x > Gdx.graphics.getWidth()){
-                    activeBullets.remove(Bullet);
-                    inactiveBullets.addFirst(Bullet);
+                if (bullet.getPosition().x > Gdx.graphics.getWidth()){
+                    recyclePlayerBullet(bullet, activeBullets, inactiveBullets);
                 }
             }
         }
 
         for (int i = activeEnemyBullets.size() - 1; i >= 0; i--){
-            Bullet Bullet = activeEnemyBullets.get(i);
-            Bullet.move(delta);
+            Bullet bullet = activeEnemyBullets.get(i);
+            bullet.move(delta);
 
-            if (Bullet.getPosition().x > Gdx.graphics.getWidth() || Bullet.getPosition().x < 0){
-                activeEnemyBullets.remove(Bullet);
-                inactiveEnemyBullets.addFirst(Bullet);
-            }
+            if (Intersector.overlaps(ship.getHitBox(), bullet.getHitBox())){
+                ship.setAlive(false);
+                recycleEnemyBullet(bullet, activeEnemyBullets, inactiveEnemyBullets);
+            } else {
+            if (bullet.getPosition().x > Gdx.graphics.getWidth() || bullet.getPosition().x < 0){
+                recycleEnemyBullet(bullet, activeEnemyBullets, inactiveEnemyBullets);
+            }}
 
         }
+    }
+
+    private void recyclePlayerBullet(Bullet bullet, List<Bullet> activeBullets, Queue<Bullet> inactiveBullets) {
+        activeBullets.remove(bullet);
+        inactiveBullets.addFirst(bullet);
+    }
+
+    private void recycleEnemyBullet(Bullet bullet, List<Bullet> activeEnemyBullets, Queue<Bullet> inactiveEnemyBullets) {
+        activeEnemyBullets.remove(bullet);
+        inactiveEnemyBullets.addFirst(bullet);
     }
 
     public void draw(SpriteBatch batch){
