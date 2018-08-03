@@ -45,15 +45,12 @@ public class Enemy {
             timer = 0;
         }
 
-        position.add(0, velocity*dir*delta);
-
+        position.add(velocity*-1*delta, 0);
+        /*position.add(0, velocity*dir*delta);
 
         if (position.y + height/2 > Gdx.graphics.getHeight() || position.y - height/2 < 0){
-
             dir = -dir;
-            //Gdx.app.log("Cambiando direccion ", "posYEnemigo " + position.y);
-            //Gdx.app.log("Nueva dir", "dir " + dir);
-        }
+        }*/
     }
 
     public void draw(SpriteBatch batch){
@@ -71,6 +68,10 @@ public class Enemy {
     public Circle getHitBox() {
         hitBox.setPosition(position.x, position.y);
         return hitBox;
+    }
+
+    public Vector2 getPosition() {
+        return position;
     }
 
     public void setAlive(boolean alive) {

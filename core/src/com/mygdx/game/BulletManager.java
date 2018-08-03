@@ -15,6 +15,10 @@ public class BulletManager {
     private final Queue<Bullet> inactiveBullets = new Queue<Bullet>(20);
     private final Queue<Bullet> inactiveEnemyBullets = new Queue<Bullet>(10);
     private final List<Bullet> activeEnemyBullets = new ArrayList<Bullet>(5);
+    private float playerCooldown = 0.3f;
+    private int playerMaxBullets = 3;
+    private int playerCurrentBullets = 0;
+    private float playerCurrentCooldown = 0;
 
     public BulletManager(){
 
@@ -29,14 +33,15 @@ public class BulletManager {
         }
     }
 
-    public void firePlayerBullet(Vector2 bulletPosition){
-
-        if (inactiveBullets.size > 0){
+    public void firePlayerBullet(Vector2 bulletPosition, float delta){
+        playerCurrentCooldown += delta;
+        if (playerCurrentCooldown > playerCooldown || activeBullets.isEmpty()){
+            playerCurrentCooldown = 0;
             Bullet newBullet = inactiveBullets.removeFirst();
             newBullet.init(bulletPosition, 1);
             activeBullets.add(newBullet);
-            Gdx.app.log("BulletManager", "size inactivebullet pool: " + inactiveBullets.size);
-            Gdx.app.log("BulletManager", "size activebullet pool: " + activeBullets.size());
+            //Gdx.app.log("BulletManager", "size inactivebullet pool: " + inactiveBullets.size);
+            //Gdx.app.log("BulletManager", "size activebullet pool: " + activeBullets.size());
         }
     }
 
@@ -60,7 +65,7 @@ public class BulletManager {
 
 
             if (bullet.getPosition().x > Gdx.graphics.getWidth()){
-                Gdx.app.log("BulletManager", "bala salio de la pantalla");
+                //Gdx.app.log("BulletManager", "bala salio de la pantalla");
                 recyclePlayerBullet(bullet, activeBullets, inactiveBullets);
             }
 

@@ -33,6 +33,7 @@ public class Main extends ApplicationAdapter {
 	private float physicsUpdateSpeed = 1/60f;
 	private float accumulator = 0;
 	private float backgroundLast = 0f;
+	private int progress;
 
 	private boolean isRunning;
 
@@ -46,7 +47,7 @@ public class Main extends ApplicationAdapter {
 
 		bulletManager = new BulletManager();
 		enemyManager = new EnemyManager(bulletManager);
-		enemyManager.generateEnemy();
+		//enemyManager.generateEnemy();
 
 		modelBatch = new ModelBatch();
 
@@ -65,7 +66,7 @@ public class Main extends ApplicationAdapter {
 		assets.load("escena.g3db", Model.class);
 		loading = true;
 		isRunning = true;
-
+		progress = 0;
 	}
 
 	private void doneLoading(){
@@ -119,18 +120,18 @@ public class Main extends ApplicationAdapter {
 
 
 	private void update(float delta) {
-
-		//float delta = Gdx.graphics.getDeltaTime();
+		progress++;
+		//Gdx.app.log("Main:update", "progress " + progress);
 
 		ship.move(input.getxDirNow(), input.getyDirNow(), delta);
 
 		if (input.isShooting()){
 			Vector2 bulletPos = ship.getPosition().cpy();
 			bulletPos.add(ship.getTexture().getWidth()/2, 0);
-			bulletManager.firePlayerBullet(bulletPos);
+			bulletManager.firePlayerBullet(bulletPos, delta);
 		}
 
-		enemyManager.update(delta);
+		enemyManager.update(delta, progress);
 
 		bulletManager.update(delta);
 
@@ -172,10 +173,10 @@ public class Main extends ApplicationAdapter {
 		enemyManager.draw(batch);
 		batch.end();
 
-		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+		/*shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 		enemyManager.drawDebug(shapeRenderer);
 		ship.drawDebug(shapeRenderer);
-		shapeRenderer.end();
+		shapeRenderer.end();*/
 	}
 
 	@Override

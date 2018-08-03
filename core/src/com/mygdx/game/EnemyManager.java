@@ -30,10 +30,34 @@ public class EnemyManager {
         }
     }
 
-    public void update(float delta){
+    public void generateEnemy(float x, float y){
+        if (inactiveEnemies.size > 0){
+            Enemy enemy = inactiveEnemies.removeFirst();
+            activeEnemies.add(enemy);
+            enemy.init(x, y);
+        }
+    }
+
+    public void update(float delta, int progress){
+
+        switch (progress){
+            case 200:{
+                generateEnemy(850, 300);
+                break;
+            }
+            case 300:{
+                generateEnemy(850, 500);
+                break;
+            }
+            case 400:{
+                generateEnemy(850, 100);
+                break;
+            }
+        }
         for (int i=activeEnemies.size() - 1; i >= 0; i--){
             Enemy enemy = activeEnemies.get(i);
             enemy.move(delta, bulletManager);
+
 
         }
     }
