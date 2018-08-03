@@ -19,16 +19,20 @@ public class Enemy {
     private float timer = 0;
     private boolean alive = true;
 
-    public Enemy(String rutaText){
+    public Enemy(String rutaText, float velocity){
         texture = new Texture(rutaText);
         width = texture.getWidth();
         height = texture.getHeight();
-        position = new Vector2(400,200);
+        position = new Vector2();
         hitBoxRadius = 20;
         hitBox = new Circle(position, hitBoxRadius);
-        velocity = 300;
+        this.velocity = velocity;
 
         dir = 1;
+    }
+
+    public void init(float x, float y){
+        position.set(x, y);
     }
 
     public void move(float delta, BulletManager bulletManager){
@@ -75,5 +79,10 @@ public class Enemy {
 
     public void dispose(){
         texture.dispose();
+    }
+
+    public void killed(){
+        alive = false;
+
     }
 }

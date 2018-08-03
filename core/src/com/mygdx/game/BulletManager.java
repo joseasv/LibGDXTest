@@ -20,12 +20,12 @@ public class BulletManager {
 
         for (int i=0; i < 20; i++){
             inactiveBullets.addFirst(new Bullet("bala2.png"));
-            Gdx.app.log("Main", "size bullet pool: " + inactiveBullets.size);
+            //Gdx.app.log("Main", "size bullet pool Player: " + inactiveBullets.size);
         }
 
         for (int i=0; i < 10; i++){
             inactiveEnemyBullets.addFirst(new Bullet("bala2.png"));
-            Gdx.app.log("Main", "size bullet pool: " + inactiveBullets.size);
+            //Gdx.app.log("Main", "size bullet pool Enemy: " + inactiveEnemyBullets.size);
         }
     }
 
@@ -35,8 +35,8 @@ public class BulletManager {
             Bullet newBullet = inactiveBullets.removeFirst();
             newBullet.init(bulletPosition, 1);
             activeBullets.add(newBullet);
-            //Gdx.app.log("BulletManager", "size inactivebullet pool: " + inactiveBullets.size);
-            //Gdx.app.log("BulletManager", "size activebullet pool: " + activeBullets.size());
+            Gdx.app.log("BulletManager", "size inactivebullet pool: " + inactiveBullets.size);
+            Gdx.app.log("BulletManager", "size activebullet pool: " + activeBullets.size());
         }
     }
 
@@ -51,44 +51,54 @@ public class BulletManager {
 
     }
 
-    public void update(float delta, Enemy enemy, PlayerShip ship){
+    public void update(float delta){
 
         for (int i = activeBullets.size() - 1; i >= 0; i--){
             Bullet bullet = activeBullets.get(i);
             bullet.move(delta);
-            if (Intersector.overlaps(enemy.getHitBox(), bullet.getHitBox())){
-                enemy.setAlive(false);
+
+
+
+            if (bullet.getPosition().x > Gdx.graphics.getWidth()){
+                Gdx.app.log("BulletManager", "bala salio de la pantalla");
                 recyclePlayerBullet(bullet, activeBullets, inactiveBullets);
-            } else {
-                if (bullet.getPosition().x > Gdx.graphics.getWidth()){
-                    recyclePlayerBullet(bullet, activeBullets, inactiveBullets);
-                }
             }
+
         }
 
         for (int i = activeEnemyBullets.size() - 1; i >= 0; i--){
             Bullet bullet = activeEnemyBullets.get(i);
             bullet.move(delta);
 
-            if (Intersector.overlaps(ship.getHitBox(), bullet.getHitBox())){
-                ship.setAlive(false);
-                recycleEnemyBullet(bullet, activeEnemyBullets, inactiveEnemyBullets);
-            } else {
             if (bullet.getPosition().x > Gdx.graphics.getWidth() || bullet.getPosition().x < 0){
                 recycleEnemyBullet(bullet, activeEnemyBullets, inactiveEnemyBullets);
-            }}
+            }
 
         }
     }
 
     private void recyclePlayerBullet(Bullet bullet, List<Bullet> activeBullets, Queue<Bullet> inactiveBullets) {
+        bullet.setActive(false);
         activeBullets.remove(bullet);
         inactiveBullets.addFirst(bullet);
     }
 
     private void recycleEnemyBullet(Bullet bullet, List<Bullet> activeEnemyBullets, Queue<Bullet> inactiveEnemyBullets) {
+        bullet.setActive(false);
         activeEnemyBullets.remove(bullet);
         inactiveEnemyBullets.addFirst(bullet);
+    }
+
+    public void recycleEnemyBullet(Bullet bullet){
+        bullet.setActive(false);
+        activeEnemyBullets.remove(bullet);
+        inactiveEnemyBullets.addFirst(bullet);
+    }
+
+    public void recyclePlayerBullet(Bullet bullet){
+        bullet.setActive(false);
+        activeBullets.remove(bullet);
+        inactiveBullets.addFirst(bullet);
     }
 
     public void draw(SpriteBatch batch){
@@ -105,5 +115,31 @@ public class BulletManager {
 
     public void render(){
 
+    }
+
+    public List<Bullet> getActiveBullets() {
+        return activeBullets;
+    }
+
+    public List<Bullet> getActiveEnemyBullets() {
+        return activeEnemyBullets;
+    }
+
+    public void dispose(){
+        while(inactiveEnemyBullets.size>0){
+            inactiveEnemyBullets.removeFirst().dispose();
+        }
+
+        while(inactiveBullets.size > 0){
+            inactiveBullets.removeFirst().dispose();
+        }
+
+        for(int i=0;i < activeEnemyBullets.size(); i++){
+            activeEnemyBullets.get(i).dispose();
+        }
+
+        for(int i=0;i < activeBullets.size(); i++){
+            activeBullets.get(i).dispose();
+        }
     }
 }

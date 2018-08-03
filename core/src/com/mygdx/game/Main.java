@@ -2,10 +2,8 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.*;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
@@ -13,8 +11,6 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.*;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.Pool;
-import com.badlogic.gdx.utils.Queue;
 
 
 public class Main extends ApplicationAdapter {
@@ -29,9 +25,10 @@ public class Main extends ApplicationAdapter {
 
 	private PerspectiveCamera cam2;
 	private PlayerShip ship;
-	private Enemy enemy;
+
 	private InputController input;
 	private BulletManager bulletManager;
+	private EnemyManager enemyManager;
 
 	private float physicsUpdateSpeed = 1/60f;
 	private float accumulator = 0;
@@ -44,10 +41,12 @@ public class Main extends ApplicationAdapter {
 		batch = new SpriteBatch();
 		shapeRenderer = new ShapeRenderer();
 		ship = new PlayerShip("sprites.png", 400);
-		enemy = new Enemy("enemigo2.png");
+
 		input = new InputController();
 
 		bulletManager = new BulletManager();
+		enemyManager = new EnemyManager(bulletManager);
+		enemyManager.generateEnemy();
 
 		modelBatch = new ModelBatch();
 
@@ -108,7 +107,7 @@ public class Main extends ApplicationAdapter {
 			}
 
 			//Gdx.app.log("Main", "saliendo del bucle " + accumulator);
-			//update(Gdx.graphics.getRawDeltaTime());
+			//update(Gdx.graphics.getDeltaTime());
 			draw();
 		}
 
@@ -131,13 +130,15 @@ public class Main extends ApplicationAdapter {
 			bulletManager.firePlayerBullet(bulletPos);
 		}
 
-		enemy.move(delta, bulletManager);
+		enemyManager.update(delta);
 
-		bulletManager.update(delta, enemy, ship);
+		bulletManager.update(delta);
+
+		CollisionManager.checkColPlayerEnemies(ship, bulletManager, enemyManager);
+		CollisionManager.checkColBulletEnemies(bulletManager, enemyManager);
 
 		Vector3 pos = new Vector3();
 		if (escenarioIns.size > 0){
-
 			escenarioIns.get(0).transform.getTranslation(pos);
 		}
 
@@ -168,11 +169,11 @@ public class Main extends ApplicationAdapter {
 		batch.begin();
 		bulletManager.draw(batch);
 		ship.draw(batch);
-		enemy.draw(batch);
+		enemyManager.draw(batch);
 		batch.end();
 
 		shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-		enemy.drawDebug(shapeRenderer);
+		enemyManager.drawDebug(shapeRenderer);
 		ship.drawDebug(shapeRenderer);
 		shapeRenderer.end();
 	}
@@ -181,7 +182,8 @@ public class Main extends ApplicationAdapter {
 	public void dispose () {
 		batch.dispose();
 		ship.dispose();
-		enemy.dispose();
+		bulletManager.dispose();
+		enemyManager.dispose();
 		modelBatch.dispose();
 		escenarioIns.clear();
 		assets.dispose();
