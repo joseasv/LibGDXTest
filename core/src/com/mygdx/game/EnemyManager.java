@@ -41,15 +41,15 @@ public class EnemyManager {
     public void update(float delta, int progress){
 
         switch (progress){
-            case 200:{
+            case 400:{
                 generateEnemy(850, 300);
                 break;
             }
-            case 300:{
+            case 500:{
                 generateEnemy(850, 500);
                 break;
             }
-            case 400:{
+            case 600:{
                 generateEnemy(850, 100);
                 break;
             }

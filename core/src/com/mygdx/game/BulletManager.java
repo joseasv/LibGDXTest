@@ -15,7 +15,7 @@ public class BulletManager {
     private final Queue<Bullet> inactiveBullets = new Queue<Bullet>(20);
     private final Queue<Bullet> inactiveEnemyBullets = new Queue<Bullet>(10);
     private final List<Bullet> activeEnemyBullets = new ArrayList<Bullet>(5);
-    private float playerCooldown = 0.3f;
+    private float playerCooldown = 0.20f;
     private int playerMaxBullets = 3;
     private int playerCurrentBullets = 0;
     private float playerCurrentCooldown = 0;
